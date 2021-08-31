@@ -36,9 +36,10 @@ class FlowEntry:
 
 class LoadDispatcher:
 
-    def __init__(self, liveServers, serviceIp):
+    def __init__(self, liveServers, serviceIp, picker):
         self.liveServers = liveServers
         self.serviceIp = serviceIp
+        self.picker = picker
 
         self.flowCache = {}
         self.clientMacs = {}
@@ -50,7 +51,7 @@ class LoadDispatcher:
         return [server.ip for server in self.getServers()]
 
     def cleanCache(self):
-        for socket, flow in self.flowCache.items():
+        for socket, flow in self.flowCache.copy().items():
             if flow.isExpired:
                 del self.flowCache[socket]
 
@@ -66,7 +67,7 @@ class LoadDispatcher:
         return tcpPacket is not None
 
     def pickServer(self):
-        return random.choice(self.getServers())
+        return self.picker.pickServer()
 
     def handle(self, event, conn):
         packet = event.parsed
@@ -96,7 +97,7 @@ class LoadDispatcher:
         tcpPacket = packet.find('tcp')
         ipPacket = packet.find('ipv4')
 
-        # log.debug(f"Handle: {ipPacket.srcip}:{tcpPacket.srcport} -> {ipPacket.dstip}:{tcpPacket.dstport}")
+        #log.debug(f"Handle: {ipPacket.srcip}:{tcpPacket.srcport} -> {ipPacket.dstip}:{tcpPacket.dstport}")
 
         if ipPacket.dstip == self.serviceIp:
             # Inbound
@@ -150,7 +151,7 @@ class LoadDispatcher:
 
             actions = [
                 of.ofp_action_dl_addr.set_src(conn.eth_addr),
-                of.ofp_action_nw_addr.set_src(self.serviceIp),e
+                of.ofp_action_nw_addr.set_src(self.serviceIp),
                 of.ofp_action_output(port = flow.switchPort)
             ]
 
