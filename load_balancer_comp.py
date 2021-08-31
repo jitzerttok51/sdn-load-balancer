@@ -33,7 +33,7 @@ from load_balancer.ServiceARPResponder import ServiceARPResponder
 from load_balancer.ServerDiscoverer import ServerDiscoverer, ServerNode
 from load_balancer.ServerHealthChecker import ServerHealthChecker
 from load_balancer.LoadDispatcher import LoadDispatcher
-from load_balancer.Random import Random
+from load_balancer.RandomBalancer import RandomBalancer
 
 # Create a logger for this component
 log = core.getLogger("test_balancer")
@@ -66,7 +66,7 @@ class test_balancher (object):
             self.handlers.remove(discoverer)
             
             healthChecker = ServerHealthChecker(servers, self.serviceIp, self.endpoints)
-            dispatcher = LoadDispatcher(healthChecker, self.serviceIp, Random(healthChecker))
+            dispatcher = LoadDispatcher(healthChecker, self.serviceIp, RandomBalancer(healthChecker))
 
             self.handlers.append(healthChecker)
             self.handlers.append(dispatcher)
