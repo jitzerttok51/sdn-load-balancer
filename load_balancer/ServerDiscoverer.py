@@ -18,6 +18,9 @@ class ServerNode:
     def __str__(self):
         return f"Server({self.ip},{self.mac},{self.port})"
 
+    def __repr__(self) -> str:
+        return str(self)
+
 class ServerDiscoverer(object):
     
     def __init__(self, endpoints, serviceIp: IPAddr):

@@ -1,0 +1,18 @@
+{
+  "service": "10.1.1.1",
+  "dpid": 1,
+  "endpoints": 1,
+  "method": {
+    "name": "WeightedRoundRobinBalancer",
+    "weights": [
+      {
+        "server":"10.0.0.1",
+        "weight": 10
+      },
+      {
+        "server":"10.0.0.2",
+        "weight": 20
+      }
+    ]
+  }
+}

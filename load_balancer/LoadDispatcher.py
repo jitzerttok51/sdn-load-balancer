@@ -13,7 +13,7 @@ import random
 
 from load_balancer.ServerDiscoverer import ServerNode
 
-FLOW_CACHE_TIMEOUT = 5 * 60 # seconds
+FLOW_CACHE_TIMEOUT = 30 # seconds
 FLOW_TIMEOUT = 10 # seconds
 
 log = core.getLogger("LoadDispatcher")
@@ -28,7 +28,8 @@ class FlowEntry:
         self.refresh()
     
     def refresh (self):
-        self.timeout = time.time() + FLOW_CACHE_TIMEOUT
+        # self.timeout = time.time() + FLOW_CACHE_TIMEOUT
+        self.timeout = time.time() + random.randint(10, FLOW_CACHE_TIMEOUT)
 
     @property
     def isExpired (self):
@@ -43,6 +44,7 @@ class LoadDispatcher:
 
         self.flowCache = {}
         self.clientMacs = {}
+        self.fullServerLoad = {}
     
     def getServers(self):
         return self.liveServers.getServers()
@@ -57,6 +59,7 @@ class LoadDispatcher:
 
     def match(self, event, conn):
         self.cleanCache()
+        self.logServerLoad()
 
         #Match server -> client ARP resolution
         arpPacket = event.parsed.find('arp')
@@ -67,7 +70,27 @@ class LoadDispatcher:
         return tcpPacket is not None
 
     def pickServer(self):
-        return self.picker.pickServer()
+        return self.picker.pickServer(self)
+
+    def logServerLoad(self):
+        serverLoad = {}
+        for _,entry in self.flowCache.items():
+            if entry.server.ip not in serverLoad:
+                serverLoad[entry.server.ip] = 0
+            serverLoad[entry.server.ip] = serverLoad[entry.server.ip] + 1
+        for ip, load in serverLoad.items():
+            if ip not in self.fullServerLoad:
+                self.fullServerLoad[ip] = []
+            self.fullServerLoad[ip].append(load)
+        avgLoad = {}
+        for ip, load in self.fullServerLoad.items():
+            avgLoad[ip] = sum(load) / len(load)
+        log.info(avgLoad)
+        maxLoad = {}
+        for ip, load in self.fullServerLoad.items():
+            maxLoad[ip] = max(load)
+        log.info(maxLoad)
+
 
     def handle(self, event, conn):
         packet = event.parsed
