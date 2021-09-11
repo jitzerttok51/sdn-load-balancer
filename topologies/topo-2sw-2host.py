@@ -78,10 +78,11 @@ if __name__ == '__main__':
 
     clients = ensureList(net.get(*ensureList(topo.clientNodes)))
 
-    nRequests = 10
+    nRequests = 100
 
     command = "curl 10.1.1.1:5000"
     for i in range(nRequests):
+        print i
         for client in clients:
             print client.name + ": " + command
             client.cmd(command)
