@@ -3,23 +3,16 @@ import pox.openflow.libopenflow_01 as of
               
 from pox.lib.addresses import IPAddr 
 import pox.lib.util as poxutil
-import pox.lib.revent as revent               # Event library
-import pox.lib.recoco as recoco               # Multitasking library
-from pox.lib.packet.ethernet import ethernet, ETHER_BROADCAST
-from pox.lib.packet.arp import arp
+import pox.lib.revent as revent
 import json
-from pox.lib.util import dpid_to_str, str_to_dpid
-
-from typing import Union, Tuple
+from pox.lib.util import dpid_to_str
 
 from load_balancer.ServiceARPResponder import ServiceARPResponder
-from load_balancer.ServerDiscoverer import ServerDiscoverer, ServerNode
+from load_balancer.ServerDiscoverer import ServerDiscoverer
 from load_balancer.ServerHealthChecker import ServerHealthChecker
 from load_balancer.LoadDispatcher import LoadDispatcher
-from load_balancer.RandomBalancer import RandomBalancer
-from load_balancer.RoundRobinBalancer import RoundRobinBalancer
-from load_balancer.WeightedRoundRobinBalancer import WeightedRoundRobinBalancer
-from load_balancer.LeastConnectionBalancer import LeastConnectionBalancer
+
+import importlib
 
 # Create a logger for this component
 log = core.getLogger("LoadBalancer")
@@ -70,6 +63,7 @@ class LoadBalancer (object):
         self.serviceIp = IPAddr(config.serviceIp)
 
         discoverer = ServerDiscoverer(config.endpoints, self.serviceIp)
+        log.info(discoverer.__module__)
 
         self.handlers = [
             ServiceARPResponder(self.serviceIp, self.endpoints),
@@ -80,7 +74,13 @@ class LoadBalancer (object):
             self.handlers.remove(discoverer)
             
             healthChecker = ServerHealthChecker(servers, self.serviceIp, self.endpoints)
-            dispatcher = LoadDispatcher(healthChecker, self.serviceIp, LeastConnectionBalancer(healthChecker))
+
+            module = importlib.import_module("load_balancer."+config.method)
+            class_ = getattr(module, config.method)
+            instance = class_(healthChecker, config)
+
+
+            dispatcher = LoadDispatcher(healthChecker, self.serviceIp, instance)
 
             self.handlers.append(healthChecker)
             self.handlers.append(dispatcher)

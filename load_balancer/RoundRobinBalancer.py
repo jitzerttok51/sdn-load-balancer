@@ -3,9 +3,10 @@ from .AbstractBalancer import AbstracBalancer
 
 class RoundRobinBalancer(AbstracBalancer):
 
-    def __init__(self, liveServers):
+
+    def __init__(self, liveServers, config):
         self.liveServers = liveServers
-        super().__init__(self.liveServers)
+        super().__init__(liveServers, config)
 
         self.localSnapshot = list(self.getSnapshot())
 

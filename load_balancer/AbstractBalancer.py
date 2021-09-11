@@ -10,9 +10,11 @@ class SnapshotUpdate:
 
 class AbstracBalancer:
 
-    def __init__(self, liveServers: ServerHealthChecker):
-        self.liveServers = liveServers
 
+
+    def __init__(self, liveServers: ServerHealthChecker, config):
+        self.liveServers = liveServers
+        self.cfg = config
         self.snapshot: Set[ServerNode] = set(self.getLiveServers())
 
     def getLiveServers(self) -> List[ServerNode]:
@@ -27,3 +29,7 @@ class AbstracBalancer:
         removed: Set[ServerNode] = self.snapshot.difference(update)
         self.snapshot = update
         return SnapshotUpdate(added, removed)
+
+    @property
+    def config(self):
+        return self.cfg

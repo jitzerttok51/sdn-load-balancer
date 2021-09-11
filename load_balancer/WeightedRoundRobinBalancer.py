@@ -9,13 +9,14 @@ from .LoadDispatcher import LoadDispatcher
 
 class WeightedRoundRobinBalancer(AbstracBalancer):
 
-    def __init__(self, liveServers):
+    def __init__(self, liveServers, config):
         self.liveServers = liveServers
-        super().__init__(self.liveServers)
+        super().__init__(self.liveServers, config)
 
-        self.weights = {
-            IPAddr("10.0.0.1"): 3, 
-        }
+        self.weights = {}
+        for entry in self.config.methodArgs["weights"]:
+            self.weights[IPAddr(entry["server"])] = entry["weight"]
+        
 
         self.localSnapshot = list(self.getSnapshot())
         self.applyWeights()

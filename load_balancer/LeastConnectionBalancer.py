@@ -8,8 +8,8 @@ from .LoadDispatcher import LoadDispatcher
 
 class LeastConnectionBalancer(AbstracBalancer):
 
-    def __init__(self, liveServers):
-         super().__init__(liveServers)
+    def __init__(self, liveServers, config):
+         super().__init__(liveServers, config)
 
     def pickServer(self, ctx: LoadDispatcher) -> ServerNode:
         serverLoad = {}
