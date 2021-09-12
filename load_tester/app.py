@@ -12,6 +12,7 @@ monitorIp = os.environ['MONITOR_IP']
 monitorPort = int(os.environ['MONITOR_PORT'])
 
 load = {}
+timeouts = {}
 
 @app.route("/")
 def home():
@@ -23,11 +24,10 @@ def home():
 @app.route('/load/<magnitude>/<seconds>')
 def addLoad(magnitude="1", seconds="1"):
     global load
+    count()
     reqId = request.__hash__()
     load[reqId] = int(magnitude)
-    time.sleep(int(seconds))
-    if reqId in load:
-        del load[reqId]
+    timeouts[reqId] = time.time() + int(seconds)
     return magnitude
 
 def count():
@@ -40,11 +40,20 @@ def save(host, count):
         f.write(str(count))
 
 
+def cleanTimeouts():
+    global timeouts
+    global load
+    expired = [req for req, t in timeouts.items() if t <= time.time()]
+    for e in expired:
+        del timeouts[e]
+        del load[e]
+
 def submitLoad():
+    cleanTimeouts()
     hostLoad = sum(load.values())
     print(f"Current load: {hostLoad}")
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.sendto(bytes([hostLoad]), (monitorIp, monitorPort))
+    sock.sendto(hostLoad.to_bytes(4, byteorder='big'), (monitorIp, monitorPort))
 
 def createTimer(target, seconds):
     def iter():
