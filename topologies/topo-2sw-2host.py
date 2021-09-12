@@ -1,13 +1,3 @@
-"""Custom topology example
-
-Two directly connected switches plus a host for each switch:
-
-   host --- switch --- switch --- host
-
-Adding the 'topos' dict with a key/value pair to generate our newly defined
-topology enables one to pass in '--topo=mytopo' from the command line.
-"""
-
 from mininet.topo import Topo
 from mininet.cli import CLI
 from mininet.net import Mininet
@@ -65,7 +55,7 @@ if __name__ == '__main__':
                       ip=REMOTE_CONTROLLER_IP,
                       port=REMOTE_CONTROLLER_PORT)
     net.start()
-    print "Starting http servers"
+    print ("Starting http servers")
 
     workdir = path.abspath(path.join(path.dirname(path.realpath(__file__)), os.pardir, 'test_balancer'))
     
@@ -82,9 +72,9 @@ if __name__ == '__main__':
 
     command = "curl 10.1.1.1:5000"
     for i in range(nRequests):
-        print i
+        print (i)
         for client in clients:
-            print client.name + ": " + command
+            print (client.name + ": " + command)
             client.cmd(command)
   
     statistics = {}
@@ -97,7 +87,7 @@ if __name__ == '__main__':
             if f is not None:
                 f.close()
     
-    print "Stats: " + str(statistics)
+    print ("Stats: " + str(statistics))
     # CLI(net)
     net.stop()
 
