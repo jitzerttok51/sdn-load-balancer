@@ -66,7 +66,29 @@ if __name__ == '__main__':
         server.cmd("bash run.sh " + server.name )
         # server.cmd('eval "python -m SimpleHTTPServer &"')
 
-    CLI(net)
+    clients = ensureList(net.get(*ensureList(topo.clientNodes)))
+
+    nRequests = 10
+
+    command = "curl 10.1.1.1:5000/2000/2"
+    for i in range(nRequests):
+        print (i)
+        for client in clients:
+            print (client.name + ": " + command)
+            client.cmd(command)
+  
+    statistics = {}
+    for server in servers:
+        f = None
+        try:
+            f = open(server.name + '.txt')
+            statistics[server.name] = int(f.read())
+        finally:
+            if f is not None:
+                f.close()
+    
+    print ("Stats: " + str(statistics))
+    # CLI(net)
     net.stop()
 
 topos = { 'mytopo': ( lambda: MyTopo() ) }
