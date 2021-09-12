@@ -2,5 +2,7 @@
 
 source env/bin/activate
 export HOST=$1
+export MONITOR_IP=10.1.1.1
+export MONITOR_PORT=10444
 
-python -m flask run --host=0.0.0.0 &
+python app.py &
